@@ -8,7 +8,6 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_text_splitters import MarkdownHeaderTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
-from langchain_ollama import ChatOllama
 from langchain_groq import ChatGroq
 from langchain.tools import tool
 from langchain.agents import create_agent
@@ -48,13 +47,15 @@ def process_pdf(pdf_path):
     header_splits = header_splitter.split_text(md_text)
     
     # 3. Recursive Split
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1000, 
-        chunk_overlap=100, 
-        add_start_index=True,
-        separators=["\n\n", "\n", " ", ""]
-    )
-    final_chunks = text_splitter.split_documents(header_splits)
+    # text_splitter = RecursiveCharacterTextSplitter(
+    #     chunk_size=1000, 
+    #     chunk_overlap=200, 
+    #     add_start_index=True,
+    #     separators=["\n\n", "\n", " ", ""]
+    # )
+    # final_chunks = text_splitter.split_documents(header_splits)
+
+    final_chunks = header_splits
     return final_chunks
 
 def create_vector_store(chunks, embedding_model):
@@ -76,7 +77,7 @@ def get_agent_for_pdf(vector_store, llm):
     @tool(response_format="content_and_artifact")
     def retrieve_context(query: str):
         """Retrieve information to help answer a query."""
-        retrieved_docs = vector_store.max_marginal_relevance_search(query, k=2,lambda_mult=0.5)
+        retrieved_docs = vector_store.similarity_search(query, k=3)
         serialized = "\n\n".join(
             (f"Source: {doc.metadata}\nContent: {doc.page_content}")
             for doc in retrieved_docs
@@ -87,7 +88,10 @@ def get_agent_for_pdf(vector_store, llm):
     
     system_prompt = (
         "You have access to a tool that retrieves context from a document. "
-        "Use the tool to help answer user queries."
+    "Use the tool to help answer user queries."
+    "Make sure to understand the context provided by the tool before answering."
+    "Make sure to know what the abbreviations stand for before answering."
+    "Only answer questions with the context provided by the tool. Not your prior knowledge."
     )
     
     # create_react_agent is the modern LangGraph way to make an agent
@@ -103,7 +107,7 @@ with st.sidebar:
     uploaded_file = st.file_uploader("Choose a PDF", type="pdf")
     
     if uploaded_file and st.session_state.vector_store is None:
-        with st.spinner("Processing PDF..."):
+        with st.spinner("Processing PDF...this may take 1-2 minutes"):
             with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
                 tmp.write(uploaded_file.getvalue())
                 tmp_path = tmp.name
