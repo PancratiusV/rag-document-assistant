@@ -14,8 +14,8 @@ from langchain.agents import create_agent
 from langchain_core.messages import AIMessage
 
 # --- 2. SETUP ---
-st.set_page_config(page_title="PDF RAG Demo", layout="wide")
-st.title("📄 Answer Questions From PDF")
+st.set_page_config(page_title="RAG Demo", layout="wide")
+st.title("📄 Answer Questions from Document")
 
 # --- 3. BACKEND ---
 @st.cache_resource
@@ -29,11 +29,11 @@ def get_llm():
     return ChatGroq(model="openai/gpt-oss-120b",
     groq_api_key=os.environ["GROQ_API_KEY"])
 
-def process_pdf(pdf_path):
-    """Parses PDF -> Markdown -> Chunks"""
+def process_document(path):
+    """Parses doc -> Markdown -> Chunks"""
     # 1. Parse with Docling
     converter = DocumentConverter()
-    result = converter.convert(pdf_path).document
+    result = converter.convert(path).document
     md_text = result.export_to_markdown()
     
     # 2. Split by Headers
@@ -68,7 +68,7 @@ def create_vector_store(chunks, embedding_model):
     return vector_store
 
 # --- 4. DYNAMIC AGENT CREATION ---
-def get_agent_for_pdf(vector_store, llm):
+def get_agent_for_doc(vector_store, llm):
     """
     Creates an agent specifically for THIS vector store.
     We define the tool INSIDE here so it can access 'vector_store'.
@@ -114,7 +114,7 @@ with st.sidebar:
                 tmp.write(uploaded_file.getvalue())
                 tmp_path = tmp.name
             try:
-                chunks = process_pdf(tmp_path)
+                chunks = process_document(tmp_path)
                 embeddings = get_embedding_model()
                 st.session_state.vector_store = create_vector_store(chunks, embeddings)
                 st.success("Agent Ready!")
@@ -137,7 +137,7 @@ if user_query:
         with st.chat_message("assistant"):
             llm = get_llm()
             # Build the agent on the fly with the current vector store
-            agent = get_agent_for_pdf(st.session_state.vector_store, llm)
+            agent = get_agent_for_doc(st.session_state.vector_store, llm)
             
             # Stream the events
             # We use a placeholder to update the text in real-time
