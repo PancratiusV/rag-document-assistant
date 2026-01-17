@@ -113,12 +113,15 @@ with st.sidebar:
             with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as tmp:
                 tmp.write(uploaded_file.getvalue())
                 tmp_path = tmp.name
-            
-            chunks = process_pdf(tmp_path)
-            embeddings = get_embedding_model()
-            st.session_state.vector_store = create_vector_store(chunks, embeddings)
-            st.success("Agent Ready!")
-            os.remove(tmp_path)
+            try:
+                chunks = process_pdf(tmp_path)
+                embeddings = get_embedding_model()
+                st.session_state.vector_store = create_vector_store(chunks, embeddings)
+                st.success("Agent Ready!")
+                os.remove(tmp_path)
+            except Exception as e:
+                st.error(f"Error processing document: {e}")
+                os.remove(tmp_path)
 
 user_query = st.chat_input("Ask the Agent...")
 
