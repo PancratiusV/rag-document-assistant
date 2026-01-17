@@ -1,6 +1,6 @@
-# PDF RAG Assistant 🤖📄
+# RAG Document Chatbot 🤖📄
 
-A retrieval-augmented generation (RAG) tool that lets you upload PDFs and ask questions about their content in natural language.
+A LLM chatbot with retrieval-augmented generation (RAG) that lets you upload documents and ask questions about their content in natural language.
 
 ![APP Demo](images/app_screenshot.png)
 
@@ -15,7 +15,9 @@ A retrieval-augmented generation (RAG) tool that lets you upload PDFs and ask qu
 *   **LLM:** `openai/gpt-oss-120b` (via Groq API)
 
 ## 💡 How It Works
-1.  **Ingestion:** The app reads PDF files and splits text into manageable chunks.
-2.  **Embedding:** Text chunks are converted into vector representations.
-3.  **Retrieval:** When you ask a question, the system finds the most semantically similar chunks in the vector store.
-4.  **Generation:** The LLM uses the retrieved context to generate an accurate answer.
+1.  **Multi-Format Ingestion:** The app accepts various file types (PDF, DOCX, PPTX, etc.) and extracts text using `docling`'s advanced parsing.
+2.  **Chunking:** Content is intelligently split into manageable segments to preserve context.
+3.  **Embedding:** Text chunks are converted into high-dimensional vector representations.
+4.  **Retrieval:** When you ask a question, the system performs a semantic search to find the most relevant information.
+5.  **Generation:** The LLM uses the retrieved context to generate a precise, fact-based answer.
+
