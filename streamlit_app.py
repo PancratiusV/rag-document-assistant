@@ -104,11 +104,13 @@ if "vector_store" not in st.session_state:
 
 with st.sidebar:
     st.header("Upload Document")
-    uploaded_file = st.file_uploader("Choose a PDF", type="pdf")
+    uploaded_file = st.file_uploader("Choose a document")
     
     if uploaded_file and st.session_state.vector_store is None:
-        with st.spinner("Processing PDF...this may take 1-2 minutes"):
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+        with st.spinner("Processing document...this may take 1-2 minutes"):
+            
+            file_ext = os.path.splitext(uploaded_file.name)[1]
+            with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as tmp:
                 tmp.write(uploaded_file.getvalue())
                 tmp_path = tmp.name
             
@@ -122,7 +124,7 @@ user_query = st.chat_input("Ask the Agent...")
 
 if user_query:
     if st.session_state.vector_store is None:
-        st.warning("Please upload a PDF first.")
+        st.warning("Please upload a document first.")
     else:
         # Display User Message
         with st.chat_message("user"):
